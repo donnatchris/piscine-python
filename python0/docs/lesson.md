@@ -176,7 +176,31 @@ Définir une fonction ne lance pas son corps. Cela explique pourquoi les modules
 
 ## 3. Collections et mutabilité — ex00
 
-### Choisir une structure
+### À quoi sert une collection ?
+
+Une **collection** regroupe plusieurs objets dans une même structure. Au lieu
+de créer `name_1`, `name_2` et `name_3`, on peut stocker plusieurs noms dans une
+liste, puis les parcourir avec une boucle.
+
+```python
+names = ["Alice", "Bob", "Charlie"]
+print(len(names))        # 3 : nombre d'éléments.
+print("Bob" in names)    # True : test d'appartenance.
+print("Diane" not in names)  # True.
+
+for name in names:
+    print(name)
+```
+
+`len()`, `in`, `not in` et `for` fonctionnent avec les quatre collections de
+cette section. En revanche, la façon d'accéder aux données et de les modifier
+dépend du type choisi.
+
+Une collection peut contenir des objets de types différents et d'autres
+collections : `["Alice", 42, [10, 20]]` est une liste valide. Regrouper des
+données de même nature reste souvent plus simple à exploiter.
+
+### Comparer les quatre structures
 
 | Type | Syntaxe | Ordre | Mutable | Particularité |
 |---|---|---|---|---|
@@ -185,11 +209,313 @@ Définir une fonction ne lance pas son corps. Cela explique pourquoi les modules
 | `set` | `{"Hello", "tutu!"}` | Aucun ordre garanti | Oui | Éléments uniques et hachables |
 | `dict` | `{"Hello": "titi!"}` | Ordre d'insertion | Oui | Clés uniques et hachables |
 
+Une **séquence** possède des positions numérotées : c'est le cas des listes et
+des tuples. Un set sert à représenter un ensemble de valeurs distinctes. Un
+dictionnaire associe chaque clé à une valeur.
+
 Un objet **mutable** peut changer de contenu en conservant son identité.
 Un objet **immuable** ne peut pas être modifié ; on construit un autre objet et
 on réaffecte le nom. Les chaînes sont également immuables.
 
-### Les quatre opérations de l'exercice
+### `list` : une séquence modifiable
+
+Une liste conserve l'ordre de ses éléments et accepte les doublons. Elle
+convient, par exemple, à une suite de mots ou de résultats à compléter.
+
+```python
+words = ["Hello", "World", "Hello"]
+print(words[0])   # Hello : premier élément.
+print(words[1])   # World : deuxième élément.
+print(words[-1])  # Hello : dernier élément.
+
+words[1] = "Python"
+print(words)      # ['Hello', 'Python', 'Hello']
+```
+
+Les indices commencent à **0**. Les indices négatifs comptent depuis la fin :
+`-1` désigne le dernier élément, `-2` l'avant-dernier. Un indice qui ne désigne
+aucun élément, comme `words[3]` ici, provoque une `IndexError`.
+
+#### Extraire une portion avec le slicing
+
+La syntaxe `sequence[start:stop:step]` permet de sélectionner une portion d'une
+liste ou d'un tuple. La borne `start` est incluse ; `stop` est **exclue**.
+
+```python
+numbers = [10, 20, 30, 40, 50]
+numbers[1:4]   # [20, 30, 40]
+numbers[:2]    # [10, 20] : depuis le début.
+numbers[2:]    # [30, 40, 50] : jusqu'à la fin.
+numbers[::2]   # [10, 30, 50] : un élément sur deux.
+numbers[::-1]  # [50, 40, 30, 20, 10] : ordre inverse.
+numbers[8:]    # [] : les bornes hors limites sont acceptées.
+```
+
+Le pas vaut `1` par défaut et ne peut pas être nul. Un slicing de liste crée
+une nouvelle liste ; il ne retire aucun élément de la liste d'origine.
+
+#### Ajouter, retirer et trier
+
+| Opération | Effet |
+|---|---|
+| `items.append(value)` | Ajoute un seul objet à la fin |
+| `items.extend(values)` | Ajoute successivement les éléments d'un itérable |
+| `items.insert(index, value)` | Insère un objet avant la position indiquée |
+| `items.remove(value)` | Retire la première occurrence ; `ValueError` si absente |
+| `items.pop()` | Retire et renvoie le dernier élément ; `IndexError` si vide |
+| `items.pop(index)` | Retire et renvoie l'élément à cet indice |
+| `del items[index]` | Supprime l'élément à cet indice |
+| `items.clear()` | Vide la liste |
+| `items.sort()` | Trie la liste sur place si ses éléments sont comparables |
+
+`append()` et `extend()` ne produisent pas la même structure :
+
+```python
+letters = ["A"]
+letters.append(["B", "C"])
+print(letters)  # ['A', ['B', 'C']] : la liste ajoutée est un seul élément.
+
+letters = ["A"]
+letters.extend(["B", "C"])
+print(letters)  # ['A', 'B', 'C']
+```
+
+Les méthodes comme `append()`, `extend()` et `sort()` modifient la liste et
+renvoient `None`. Il ne faut donc pas écrire `items = items.append(value)` :
+après cette affectation, le nom `items` désignerait `None`.
+
+```python
+numbers = [3, 1, 2]
+ordered = sorted(numbers)
+print(numbers)  # [3, 1, 2] : sorted() crée une nouvelle liste.
+print(ordered)  # [1, 2, 3]
+
+numbers.sort()
+print(numbers)  # [1, 2, 3] : sort() modifie la liste existante.
+```
+
+### `tuple` : une séquence immuable
+
+Un tuple possède un ordre, des indices et du slicing comme une liste. Il peut
+contenir des doublons, mais on ne peut ni remplacer, ni ajouter, ni retirer
+ses éléments sur place. Il convient à un regroupement fixe, comme un couple
+de coordonnées.
+
+```python
+point = (3, 7)
+print(point[0])  # 3.
+x, y = point
+print(x, y)     # 3 7 : décomposition du tuple.
+
+# point[0] = 9  # Provoquerait une TypeError.
+```
+
+La **décomposition** affecte chaque élément à un nom. Sans syntaxe étoilée,
+le nombre de noms doit correspondre au nombre d'éléments, sinon Python lève
+une `ValueError`.
+
+C'est la virgule qui forme un tuple non vide, pas les parenthèses seules :
+
+```python
+empty = ()
+single = ("Hello",)  # Tuple contenant une chaîne.
+text = ("Hello")     # Simple chaîne.
+pair = "Hello", "World"  # Tuple, même sans parenthèses.
+```
+
+Pour obtenir un tuple différent, on construit une nouvelle valeur :
+
+```python
+greeting = ("Hello", "toto!")
+greeting = greeting[:1] + ("France!",)
+print(greeting)  # ('Hello', 'France!')
+```
+
+`greeting[:1]` conserve le premier élément sous forme de tuple
+`("Hello",)`. L'opérateur `+` concatène les deux tuples. L'affectation fait
+ensuite désigner le résultat par le nom `greeting` ; le tuple initial n'a pas
+été modifié. C'est une **réaffectation**, pas une mutation.
+
+### `set` : des éléments uniques, sans position
+
+Un set conserve une seule occurrence de chaque valeur distincte. Il est utile
+pour éliminer des doublons ou tester l'appartenance à un groupe.
+
+```python
+cities = {"Paris", "Lyon", "Paris"}
+print(len(cities))       # 2.
+print("Paris" in cities)  # True.
+
+cities.add("Nantes")
+cities.add("Paris")      # Aucun doublon ajouté.
+cities.discard("Lyon")
+cities.discard("Nice")   # Aucun effet si l'élément est absent.
+# cities.remove("Nice")  # Provoquerait une KeyError.
+```
+
+Un set n'a pas d'indices : `cities[0]` provoque une `TypeError`. On peut le
+parcourir avec `for`, mais il ne faut dépendre ni de son ordre de parcours ni
+de son ordre d'affichage. `pop()` y retire et renvoie un élément arbitraire,
+pas un « dernier » élément ; sur un set vide, il lève `KeyError`.
+
+Les ensembles permettent aussi de comparer des groupes :
+
+```python
+python_students = {"Alice", "Bob"}
+linux_students = {"Bob", "Charlie"}
+
+python_students | linux_students  # Union : les trois noms.
+python_students & linux_students  # Intersection : {'Bob'}.
+python_students - linux_students  # Différence : {'Alice'}.
+python_students ^ linux_students  # Différence symétrique : Alice et Charlie.
+```
+
+Ces opérateurs construisent de nouveaux ensembles. La différence est orientée :
+`a - b` conserve les éléments de `a` absents de `b`.
+
+`{}` crée un **dictionnaire vide**. Pour un ensemble vide, il faut `set()`.
+La conversion `set(["A", "B", "A"])` élimine les doublons, mais ne conserve
+pas l'ordre de la liste. Pour un affichage trié, `sorted(cities)` renvoie une
+liste des villes dans l'ordre alphabétique.
+
+### `dict` : associer des clés à des valeurs
+
+Un dictionnaire permet de retrouver une valeur à partir d'une **clé**, comme
+un nom de champ. Les clés sont uniques ; les valeurs peuvent se répéter et
+être de n'importe quel type.
+
+```python
+student = {"name": "Alice", "level": 1}
+print(student["name"])  # Alice.
+
+student["level"] = 2       # Remplace la valeur d'une clé existante.
+student["campus"] = "Paris"  # Ajoute une nouvelle paire clé-valeur.
+print(len(student))       # 3 : nombre de paires.
+```
+
+Les crochets n'ont donc pas le même sens que pour une liste : `student[0]`
+recherche la **clé** `0`, pas le premier élément. Une clé peut d'ailleurs être
+un entier ; elle n'est pas obligatoirement une chaîne.
+
+```python
+print("name" in student)       # True : in teste les clés.
+print("Alice" in student)      # False : Alice est une valeur.
+print("Alice" in student.values())  # True.
+
+print(student.get("age"))      # None si la clé est absente.
+print(student.get("age", 0))   # 0 : valeur par défaut explicite.
+# print(student["age"])       # Provoquerait une KeyError.
+```
+
+`get()` ne crée pas la clé manquante. Pour supprimer une entrée,
+`del student["campus"]` retire la paire et `student.pop("level")` retire la
+paire tout en renvoyant sa valeur. Sans valeur par défaut, ces suppressions
+lèvent `KeyError` si la clé est absente ; `student.pop("age", 0)` renvoie `0`
+dans ce cas.
+
+Un dictionnaire conserve l'ordre d'insertion des clés. Modifier une valeur ne
+déplace pas sa clé ; supprimer puis réinsérer une clé la place à la fin.
+Si une même clé apparaît plusieurs fois à la création, la dernière valeur
+fournie est retenue : `{"level": 1, "level": 2}` vaut `{"level": 2}`.
+
+```python
+student = {"name": "Alice", "level": 2}
+
+for key in student:
+    print(key)  # name, puis level.
+
+for value in student.values():
+    print(value)  # Alice, puis 2.
+
+for key, value in student.items():
+    print(key, value)  # name Alice, puis level 2.
+```
+
+`keys()`, `values()` et `items()` fournissent des **vues** sur les clés,
+les valeurs et les paires. Ces vues reflètent les changements du dictionnaire ;
+ce ne sont pas des listes indépendantes. `list(student)` crée une liste de ses
+clés au moment de la conversion.
+
+### Pourquoi les clés et les éléments d'un set doivent être hachables
+
+Un objet **hachable** possède une empreinte numérique, obtenue avec `hash()`,
+qui reste stable pendant sa durée de vie. Des objets hachables égaux doivent
+avoir la même empreinte. Les dictionnaires et les sets utilisent ce mécanisme
+pour retrouver leurs entrées ; ils vérifient aussi l'égalité, car deux objets
+différents peuvent avoir la même empreinte.
+
+Les nombres, les chaînes et les tuples dont tous les éléments sont hachables
+peuvent servir de clés ou d'éléments de set. Les listes, dictionnaires et sets
+mutables ne sont pas hachables.
+
+```python
+positions = {(3, 7): "Alice"}  # Tuple d'entiers : clé valide.
+print(positions[(3, 7)])       # Alice.
+
+# invalid = {[3, 7]: "Alice"}  # TypeError : une liste n'est pas hachable.
+# invalid = {("Alice", [1, 2])}  # TypeError : le tuple contient une liste.
+```
+
+La contrainte porte sur les **clés**, pas sur les valeurs d'un dictionnaire :
+`{"scores": [10, 20]}` est valide. L'immutabilité d'un tuple ne suffit donc
+pas à garantir qu'il est hachable.
+
+### Mutation, réaffectation et copies
+
+Une variable est un nom qui désigne un objet. L'affectation `second = first`
+ne copie pas cet objet : elle crée un autre nom pour le même objet, un **alias**.
+
+```python
+first = [1, 2]
+second = first
+second.append(3)
+print(first)          # [1, 2, 3] : la liste partagée a été modifiée.
+print(first is second)  # True : c'est le même objet.
+
+second = [9]
+print(first)          # [1, 2, 3] : réaffecter second ne modifie pas first.
+print(second)         # [9].
+```
+
+Pour obtenir une liste indépendante au premier niveau, on peut utiliser
+`first.copy()`, `first[:]` ou `list(first)` :
+
+```python
+first = [1, 2]
+second = first.copy()
+second.append(3)
+print(first)           # [1, 2].
+print(second)          # [1, 2, 3].
+print(first is second)  # False.
+```
+
+Ce sont des **copies superficielles** : une nouvelle collection est créée,
+mais les objets qu'elle contient restent partagés. `dict.copy()` et
+`set.copy()` suivent le même principe.
+
+```python
+first = [[1, 2], [3, 4]]
+second = first.copy()
+second[0].append(99)
+print(first)  # [[1, 2, 99], [3, 4]] : la sous-liste est partagée.
+```
+
+Le module standard `copy` propose `deepcopy()` pour copier récursivement des
+structures imbriquées lorsque c'est nécessaire. Cela ne l'autorise pas pour
+autant dans un exercice dont les imports sont restreints.
+
+L'immutabilité d'un tuple concerne les références qu'il contient, pas le
+contenu des objets référencés :
+
+```python
+record = ("Alice", [10, 20])
+record[1].append(30)
+print(record)  # ('Alice', [10, 20, 30]).
+
+# record[1] = [0]  # TypeError : remplacer un élément du tuple est interdit.
+```
+
+### Relire les quatre opérations d'`ex00`
 
 ```python
 ft_list = ["Hello"]
@@ -213,26 +539,37 @@ ft_dict["Hello"] = "42Paris!"
   s'il existe ; `remove()` lève une `KeyError` s'il est absent.
 - L'affectation par clé remplace la valeur associée dans le dictionnaire.
 
-`{}` crée un dictionnaire vide ; `set()` crée un ensemble vide. Une liste ne
-peut pas servir de clé de dictionnaire ou d'élément de set, car elle n'est pas
-hachable. Un tuple n'est hachable que si tous ses éléments le sont.
-
-### Références et alias
-
-```python
-first = [1, 2]
-second = first
-second.append(3)
-print(first)  # [1, 2, 3]
-```
-
-L'affectation ne copie pas la liste : les deux noms désignent le même objet.
-Un tuple peut contenir une liste mutable ; son immutabilité empêche de remplacer
-ses éléments, mais ne rend pas immuables les objets qu'il contient.
-
 L'ordre d'affichage d'un set peut varier d'une exécution à l'autre. Un test qui
 compare exactement la ligne imprimée par `ex00` peut donc échouer malgré un
 contenu correct ; il faut comparer les ensembles sans dépendre de leur ordre.
+
+### Choisir une collection et éviter les pièges
+
+| Besoin | Choix courant | Exemple |
+|---|---|---|
+| Accumuler des éléments dans un ordre précis | `list` | Mots d'une phrase, résultats successifs |
+| Regrouper des éléments dont les positions restent fixes | `tuple` | Coordonnées `(x, y)` |
+| Conserver des valeurs distinctes, comparer des groupes | `set` | Villes visitées, élèves communs à deux cours |
+| Retrouver une valeur par une clé | `dict` | Profil d'un élève, table de codes Morse |
+
+Quelques erreurs fréquentes à reconnaître :
+
+- Confondre une position et une clé : `items[0]` accède à une position dans une
+  liste, mais à la clé `0` dans un dictionnaire.
+- Attendre un ordre d'un set : convertir une liste en set fait perdre son ordre.
+- Confondre une méthode qui modifie sur place avec une fonction qui renvoie une
+  nouvelle collection : `items.sort()` et `sorted(items)` ont des usages distincts.
+- Croire qu'une affectation ou une copie superficielle duplique toute une
+  structure imbriquée.
+- Ajouter ou supprimer des éléments pendant qu'on parcourt la même collection :
+  cela peut sauter des éléments dans une liste ou provoquer une `RuntimeError`
+  pour un dictionnaire ou un set. Pour un débutant, construire une nouvelle
+  collection ou parcourir une copie est plus simple à raisonner.
+
+Pour vérifier sa compréhension, il faut savoir expliquer pourquoi
+`ft_tuple[1] = "France!"` échoue, pourquoi deux ajouts de `"Paris!"` dans un
+set ne créent pas de doublon, et pourquoi modifier un alias de liste affecte
+aussi la liste d'origine.
 
 ## 4. Dates et formatage — ex01
 
@@ -279,19 +616,173 @@ Le formatage arrondit l'affichage sans changer la valeur numérique d'origine.
 
 ### Formater la date avec `strftime()`
 
+`strftime()` transforme un objet date ou date-heure en **chaîne de caractères**.
+On lui fournit un modèle contenant des **directives**, introduites par `%`.
+Chaque directive est remplacée par une composante de la date ; les autres
+caractères, comme `/`, `-`, `:` ou les espaces, sont recopiés tels quels.
+
+```python
+from datetime import datetime
+
+sample_date = datetime(2026, 11, 25, 14, 5, 9, 123456)
+formatted = sample_date.strftime("%d/%m/%Y à %H:%M:%S")
+print(formatted)        # 25/11/2026 à 14:05:09
+print(type(formatted))  # <class 'str'>
+```
+
+Le constructeur utilisé ici reçoit, dans l'ordre : année, mois, jour, heure,
+minute, seconde et microseconde. Cette date fixe permet de comprendre les
+formats sans dépendre du moment où le code est exécuté.
+
+Dans le modèle `"%d/%m/%Y à %H:%M:%S"` :
+
+- `%d`, `%m` et `%Y` fournissent le jour, le mois et l'année.
+- `%H`, `%M` et `%S` fournissent l'heure, les minutes et les secondes.
+- Les `/`, le texte ` à ` et les `:` sont conservés dans le résultat.
+
+Le formatage ne modifie pas `sample_date` et ne change pas son fuseau horaire.
+La variable `formatted` contient seulement une représentation textuelle de
+cet objet.
+
+#### Les principales directives de calendrier
+
+Les exemples numériques ci-dessous utilisent le **25 novembre 2026**, un
+mercredi. Les noms de jours et de mois sont illustrés avec une locale anglaise ;
+ils peuvent être différents sur la machine utilisée.
+
+| Directive | Signification | Exemple |
+|---|---|---|
+| `%Y` | Année avec le siècle | `2026` |
+| `%y` | Année sur deux chiffres | `26` |
+| `%m` | Numéro du mois, de `01` à `12` | `11` |
+| `%d` | Jour du mois, de `01` à `31` | `25` |
+| `%a` | Nom abrégé du jour selon la locale | `Wed` |
+| `%A` | Nom complet du jour selon la locale | `Wednesday` |
+| `%b` | Nom abrégé du mois selon la locale | `Nov` |
+| `%B` | Nom complet du mois selon la locale | `November` |
+| `%w` | Jour de la semaine : dimanche `0`, lundi `1`, … | `3` |
+| `%j` | Jour de l'année sur trois chiffres, de `001` à `366` | `329` |
+
+`%m` et `%d` ajoutent un zéro initial si nécessaire : le 5 janvier s'affiche
+`05/01` avec `"%d/%m"`. `%Y` est généralement préférable à `%y` pour éviter
+l'ambiguïté sur le siècle.
+
+#### Les principales directives d'heure et de fuseau
+
+Les exemples d'heure reprennent **14:05:09 et 123456 microsecondes**.
+
+| Directive | Signification | Exemple |
+|---|---|---|
+| `%H` | Heure sur 24 heures, de `00` à `23` | `14` |
+| `%I` | Heure sur 12 heures, de `01` à `12` | `02` |
+| `%p` | Indicateur matin/après-midi selon la locale | `PM` en locale anglaise |
+| `%M` | Minutes, de `00` à `59` | `05` |
+| `%S` | Secondes, de `00` à `59` pour un `datetime` | `09` |
+| `%f` | Microsecondes sur six chiffres | `123456` |
+| `%z` | Décalage par rapport à UTC, sans `:` pour un décalage en heures/minutes | `+0100` pour UTC+1 |
+| `%Z` | Nom du fuseau fourni par l'objet | `UTC` pour un objet en UTC |
+
+Avec `%I`, on utilise généralement `%p` pour distinguer le matin de
+l'après-midi : `"%I:%M %p"` donne `02:05 PM` en locale anglaise. Avec `%H`,
+cette indication n'est pas nécessaire.
+
+Les directives `%z` et `%Z` dépendent des informations de fuseau de l'objet.
+Pour un `datetime` sans fuseau, comme `sample_date`, elles produisent une
+chaîne vide. Pour représenter explicitement l'heure UTC :
+
+```python
+from datetime import timezone
+
+utc_date = datetime(2026, 11, 25, 14, 5, 9, tzinfo=timezone.utc)
+print(utc_date.strftime("%Y-%m-%d %H:%M:%S %z %Z"))
+# 2026-11-25 14:05:09 +0000 UTC
+```
+
+Cet exemple construit une date déjà exprimée en UTC. Pour convertir un
+timestamp en UTC, on peut utiliser
+`datetime.fromtimestamp(now, tz=timezone.utc)` ; `strftime()` sert ensuite
+uniquement à choisir son affichage.
+
+#### Formats dépendant de la locale et signe `%`
+
+La **locale** regroupe des conventions de langue et de présentation utilisées
+par le programme. Elle influence les noms de jours et de mois, l'indicateur
+`%p` et les trois formats suivants :
+
+| Directive | Signification | Exemple possible en locale `C` |
+|---|---|---|
+| `%x` | Représentation locale de la date | `11/25/26` |
+| `%X` | Représentation locale de l'heure | `14:05:09` |
+| `%c` | Représentation locale de la date et de l'heure | `Wed Nov 25 14:05:09 2026` |
+| `%%` | Signe `%` littéral, indépendant de la locale | `%` |
+
+Écrire une explication en français autour du modèle ne traduit pas les noms :
+`strftime("%A %d %B %Y")` peut produire `Wednesday 25 November 2026`.
+La locale active peut être configurée avec le module `locale`, mais les locales
+disponibles dépendent du système. Pour obtenir un format numérique prévisible,
+on peut choisir explicitement `"%d/%m/%Y"` ou `"%Y-%m-%d"` plutôt que `%x`.
+
+#### Quelques modèles à réutiliser
+
+```python
+print(sample_date.strftime("%d/%m/%Y"))           # 25/11/2026
+print(sample_date.strftime("%Y-%m-%d"))           # 2026-11-25
+print(sample_date.strftime("%H:%M"))              # 14:05
+print(sample_date.strftime("%H:%M:%S.%f"))        # 14:05:09.123456
+print(sample_date.strftime("%Y%m%d_%H%M%S"))      # 20261125_140509
+print(sample_date.strftime("%Y-%m-%d à 100 %%"))   # 2026-11-25 à 100 %
+```
+
+Le modèle `"%Y%m%d_%H%M%S"` peut servir à dater un nom de fichier sans `/` ni
+`:`. Un format qui commence par année, mois, jour permet aussi de conserver
+l'ordre chronologique lors d'un tri alphabétique, pour des dates exprimées
+dans le même fuseau et avec le même format.
+
+On peut employer ces mêmes directives dans une f-string, après `:` :
+
+```python
+print(f"Date : {sample_date:%d/%m/%Y à %H:%M}")
+# Date : 25/11/2026 à 14:05
+```
+
+#### Comprendre le format d'`ex01`
+
+Dans l'exercice, on retrouve :
+
 ```python
 date = datetime.fromtimestamp(now).strftime("%b %d %Y")
 ```
 
-| Directive | Signification | Exemple |
-|---|---|---|
-| `%b` | Mois abrégé selon la locale | `Oct` |
-| `%d` | Jour sur deux chiffres | `21` |
-| `%Y` | Année sur quatre chiffres | `2022` |
+`datetime.fromtimestamp(now)` construit la date et l'heure locales à partir
+du timestamp. `strftime("%b %d %Y")` en extrait une chaîne contenant le mois
+abrégé, un espace, le jour, un espace et l'année. Pour le 21 octobre 2022,
+cela donne `Oct 21 2022` en locale anglaise. Les heures et minutes existent
+toujours dans l'objet intermédiaire, mais le modèle ne les affiche pas.
 
 La date dépend de l'instant et du fuseau ; le nom du mois dépend aussi de la
 locale. Le test doit vérifier le format, sans figer la date du sujet comme
 résultat attendu.
+
+#### Les confusions fréquentes
+
+- `%m` désigne le **mois**, `%M` les **minutes** : la casse compte.
+- `%H` utilise 24 heures, `%I` utilise 12 heures.
+- `%d` est le jour du mois ; `%j` est le jour de l'année.
+- `"YYYY-MM-DD"` n'est pas un modèle de directives Python : il sera recopié
+  tel quel. Il faut écrire `"%Y-%m-%d"`.
+- Certains raccourcis comme `%-d` pour retirer le zéro initial dépendent de
+  la plateforme. Les directives présentées ci-dessus conviennent mieux à un
+  code destiné à fonctionner sur plusieurs systèmes.
+- `strftime()` produit du texte à partir d'une date. L'opération inverse,
+  lire une chaîne selon un modèle, se fait avec `datetime.strptime()` :
+
+```python
+parsed_date = datetime.strptime("25/11/2026", "%d/%m/%Y")
+print(parsed_date)  # 2026-11-25 00:00:00
+```
+
+Le modèle de lecture doit correspondre au texte fourni. Une date impossible
+ou un texte incompatible provoque une `ValueError`.
 
 ## 5. Objets et types — ex02
 
