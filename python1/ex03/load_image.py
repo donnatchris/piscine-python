@@ -13,9 +13,20 @@ def ft_load(path: str) -> np.ndarray:
         np.ndarray: The RGB pixel values of the image,
         or an empty array if an error occurs.
     """
-    assert isinstance(path, str), "Path must be a string"
-    with Image.open(path) as img:
-        img_rgb = img.convert("RGB")
-        img_array = np.array(img_rgb)
-        print(f"The shape of image is: {img_array.shape}")
-        return img_array
+    try:
+        assert isinstance(path, str), "Path must be a string"
+
+    except AssertionError as e:
+        print(f"AssertionError: {e}")
+        return np.array([])
+
+    try:
+        with Image.open(path) as img:
+            img_rgb = img.convert("RGB")
+            img_array = np.array(img_rgb)
+            print(f"The shape of image is: {img_array.shape}")
+            return img_array
+
+    except Exception as e:
+        print(f"Error loading image: {e}")
+        return np.array([])
